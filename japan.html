@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>出國行程規劃</title>
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --surface: #ffffff;
+    --border: #d9d3c8;
+    --text: #2c2820;
+    --text-muted: #7a7060;
+    --accent: #4a7c59;
+    --accent-light: #e8f0eb;
+    --tag-bg: #ede9e2;
+    --shadow: 0 1px 6px rgba(0,0,0,0.09);
+    --header-h: 54px;
+    --nav-h: 56px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Georgia', 'Noto Serif TC', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ══ Page system ══ */
+  .page { display: none; min-height: 100vh; padding-bottom: calc(var(--nav-h) + 16px); }
+  .page.active { display: block; }
+
+  /* ══ Top header ══ */
+  .top-bar {
+    position: sticky; top: 0; z-index: 200;
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 16px; gap: 10px;
+  }
+  .top-bar .back-btn {
+    display: none; align-items: center; gap: 4px;
+    background: none; border: none; cursor: pointer;
+    font-size: 0.85rem; color: var(--accent); padding: 6px 4px;
+    font-family: inherit;
+  }
+  .top-bar .back-btn.show { display: flex; }
+  .top-bar h1 { font-size: 1rem; font-weight: normal; letter-spacing: 0.04em; flex: 1; }
+  .top-bar .subtitle { font-size: 0.78rem; color: var(--text-muted); }
+
+  /* Print button */
+  .print-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 5px; padding: 5px 10px;
+    font-size: 0.78rem; cursor: pointer; font-family: inherit;
+    color: var(--text-muted); white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .print-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ══ Bottom nav ══ */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: var(--nav-h);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex; z-index: 200;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px;
+    cursor: pointer; border: none; background: none;
+    font-family: inherit; padding: 6px 0;
+    transition: background 0.15s;
+  }
+  .nav-item:active { background: var(--tag-bg); }
+  .nav-item .nav-icon { font-size: 1.3rem; line-height: 1; }
+  .nav-item .nav-label { font-size: 0.65rem; color: var(--text-muted); letter-spacing: 0.03em; }
+  .nav-item.active .nav-label { color: var(--accent); font-weight: bold; }
+
+  /* ══ Content wrapper ══ */
+  .content { max-width: 680px; margin: 0 auto; padding: 16px 14px; }
+
+  /* ══ Card ══ */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden; box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+  .card-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    background: #faf8f5;
+  }
+  .card-header h2 {
+    font-size: 0.75rem; font-weight: normal;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted);
+  }
+  .card-body { padding: 16px; }
+
+  /* ══ DAY LIST ══ */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    transition: transform 0.1s;
+  }
+  .day-card:active { transform: scale(0.98); }
+  .day-badge {
+    background: var(--accent-light); color: var(--accent);
+    font-size: 0.72rem; font-weight: bold;
+    padding: 4px 10px; border-radius: 20px;
+    white-space: nowrap; letter-spacing: 0.04em;
+  }
+  .day-card-info { flex: 1; }
+  .day-card-title { font-size: 0.95rem; margin-bottom: 3px; }
+  .day-card-sub { font-size: 0.75rem; color: var(--text-muted); }
+  .day-card-arrow { font-size: 0.8rem; color: var(--border); }
+
+  /* ══ DAY DETAIL — 多圖橫向捲動 ══ */
+  .day-maps {
+    display: flex; gap: 10px;
+    overflow-x: auto; padding-bottom: 6px;
+    margin-bottom: 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .day-maps::-webkit-scrollbar { display: none; }
+  .day-map-item {
+    flex-shrink: 0;
+    border: 1px solid var(--border); border-radius: 6px;
+    overflow: hidden; background: var(--bg);
+    width: 80vw; max-width: 340px;
+  }
+  .day-map-item img {
+    width: 100%; display: block;
+    max-height: 220px; object-fit: contain;
+    background: #eee; cursor: zoom-in;
+  }
+  .day-map-item .map-label {
+    padding: 5px 10px; font-size: 0.75rem;
+    color: var(--text-muted); border-top: 1px solid var(--border);
+    background: #faf8f5;
+  }
+  .day-map-placeholder {
+    width: 80vw; max-width: 340px;
+    height: 90px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; color: var(--border);
+    border: 1px dashed var(--border); border-radius: 6px;
+  }
+
+  /* ══ Route list ══ */
+  .route-list { display: flex; flex-direction: column; }
+  .route-item { display: flex; align-items: flex-start; position: relative; }
+  .route-item:not(:last-child)::before {
+    content: ''; position: absolute;
+    left: 7px; top: 16px; width: 1px; bottom: 0;
+    background: var(--border);
+  }
+  .route-dot {
+    width: 15px; height: 15px; border-radius: 50%;
+    border: 2px solid var(--accent); background: var(--surface);
+    flex-shrink: 0; margin-top: 3px; position: relative; z-index: 1;
+  }
+  .route-content { flex: 1; padding: 2px 10px 14px 12px; }
+  .route-place { font-size: 0.9rem; font-weight: bold; }
+  .route-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; line-height: 1.55; }
+
+  /* ══ NOTES ══ */
+  .notes-block {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 16px; margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .notes-block h3 {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted); margin-bottom: 10px; font-weight: normal;
+  }
+  .note-row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--bg); }
+  .note-row:last-child { border-bottom: none; }
+  .note-label { font-size: 0.78rem; color: var(--text-muted); min-width: 72px; padding-top: 2px; }
+  .note-val { font-size: 0.88rem; line-height: 1.6; }
+
+  /* ══ PACK ══ */
+  .pack-category { margin-bottom: 6px; }
+  .pack-cat-header {
+    padding: 10px 16px; background: var(--tag-bg);
+    font-size: 0.78rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .pack-items { padding: 4px 0; }
+  .pack-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; border-bottom: 1px solid var(--bg);
+  }
+  .pack-item:last-child { border-bottom: none; }
+  .pack-item input[type="checkbox"] {
+    accent-color: var(--accent); width: 18px; height: 18px;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .pack-item label { font-size: 0.88rem; cursor: pointer; flex: 1; transition: all 0.15s; }
+  .pack-item input:checked + label { text-decoration: line-through; color: var(--text-muted); }
+
+  .pack-progress-bar-wrap {
+    position: sticky; bottom: var(--nav-h);
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 10px 16px; display: flex; align-items: center; gap: 10px; z-index: 10;
+  }
+  .progress-bar { flex: 1; height: 5px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
+  .progress-text { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+
+  /* ══ Lightbox ══ */
+  #lightbox {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 999;
+    align-items: center; justify-content: center; cursor: zoom-out;
+  }
+  #lightbox.show { display: flex; }
+  #lightbox img { max-width: 95vw; max-height: 90vh; object-fit: contain; border-radius: 4px; }
+
+  /* ══ Print ══ */
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: #fff; font-size: 11pt; }
+    .top-bar, .bottom-nav, #lightbox { display: none !important; }
+    .page { display: none !important; }
+    #print-area { display: block !important; }
+    #print-area { padding: 0; }
+
+    .pr-cover {
+      text-align: center; padding: 32pt 0 20pt;
+      border-bottom: 1.5pt solid #4a7c59; margin-bottom: 20pt;
+    }
+    .pr-cover h1 { font-size: 20pt; color: #4a7c59; margin-bottom: 6pt; }
+    .pr-cover p  { font-size: 10pt; color: #7a7060; }
+
+    .pr-day { page-break-inside: avoid; margin-bottom: 24pt; }
+    .pr-day-header {
+      background: #ede9e2; padding: 6pt 10pt;
+      border-left: 4pt solid #4a7c59; margin-bottom: 8pt;
+    }
+    .pr-day-header h2 { font-size: 12pt; color: #2c2820; font-weight: bold; }
+    .pr-day-header span { font-size: 9pt; color: #7a7060; }
+
+    /* 多圖並排 */
+    .pr-maps { display: flex; gap: 8pt; margin-bottom: 8pt; flex-wrap: wrap; }
+    .pr-map-img {
+      flex: 1; min-width: 120pt; max-height: 140pt;
+      object-fit: contain; border: 0.5pt solid #d9d3c8;
+    }
+    .pr-map-label { font-size: 7.5pt; color: #aaa; text-align: center; margin-top: 2pt; }
+    .pr-map-placeholder {
+      border: 0.5pt dashed #d9d3c8; padding: 10pt;
+      text-align: center; color: #aaa; font-size: 9pt; margin-bottom: 8pt;
+    }
+
+    .pr-route { display: flex; gap: 8pt; margin-bottom: 6pt; align-items: flex-start; }
+    .pr-dot {
+      width: 8pt; height: 8pt; border-radius: 50%;
+      border: 1.5pt solid #4a7c59; background: #fff;
+      flex-shrink: 0; margin-top: 2pt;
+    }
+    .pr-route-place { font-size: 10pt; font-weight: bold; }
+    .pr-route-note  { font-size: 8.5pt; color: #7a7060; margin-top: 1pt; }
+
+    .pr-section-title {
+      font-size: 9pt; text-transform: uppercase; letter-spacing: 0.08em;
+      color: #7a7060; border-bottom: 0.5pt solid #d9d3c8;
+      padding-bottom: 3pt; margin: 18pt 0 8pt;
+    }
+    .pr-note-block { margin-bottom: 10pt; }
+    .pr-note-block h3 {
+      font-size: 9pt; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #7a7060; margin-bottom: 4pt;
+    }
+    .pr-note-row { display: flex; gap: 8pt; font-size: 9pt; margin-bottom: 3pt; }
+    .pr-note-label { color: #7a7060; min-width: 60pt; }
+
+    .pr-pack-section { margin-bottom: 10pt; }
+    .pr-pack-section h3 {
+      font-size: 9pt; text-transform: uppercase; letter-spacing: 0.06em;
+      color: #7a7060; margin-bottom: 4pt;
+      border-bottom: 0.5pt solid #ede9e2; padding-bottom: 2pt;
+    }
+    .pr-pack-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2pt 10pt; }
+    .pr-pack-item { font-size: 9pt; display: flex; gap: 4pt; align-items: center; }
+    .pr-check-box {
+      width: 8pt; height: 8pt; border: 1pt solid #aaa;
+      display: inline-block; flex-shrink: 0;
+    }
+    .pr-check-box.checked { background: #4a7c59; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ Top bar ══ -->
+<div class="top-bar">
+  <button class="back-btn" id="back-btn" onclick="goBack()">‹ 返回</button>
+  <h1 id="page-title">每日行程</h1>
+  <span class="subtitle" id="page-sub"></span>
+  <button class="print-btn" onclick="printAll()">🖨 列印</button>
+</div>
+
+<!-- ══ Pages ══ -->
+
+<!-- DAY LIST -->
+<div class="page active" id="page-days">
+  <div class="content" id="day-list-content"></div>
+</div>
+
+<!-- DAY DETAIL -->
+<div class="page" id="page-day-detail">
+  <div class="content" id="day-detail-content"></div>
+</div>
+
+<!-- NOTES -->
+<div class="page" id="page-notes">
+  <div class="content">
+    <div class="notes-block">
+      <h3>機票資訊</h3>
+      <div class="note-row"><span class="note-label">去程</span><span class="note-val">JX800 04/07<br>TPE(第一航廈) 08:30 → <br>NRT(第二航廈) 12:55</span></div>
+      <div class="note-row"><span class="note-label">東京回程</span><span class="note-val">JX803 04/12<br>NRT(第二航廈) 16:20 → <br>TPE(第一航廈) 19:00 </span></div>
+      <div class="note-row"><span class="note-label">大阪回程</span><span class="note-val">JX821 04/17<br>KIX(第一航廈) 13:25 →<br> TPE(第一航廈) 15:20</span></div>
+    </div>
+    <div class="notes-block">
+      <h3>飯店</h3>
+      <div class="note-row"><span class="note-label">中名稱</span><span class="note-val">東京灣舞濱日航大酒店</span></div>
+      <div class="note-row"><span class="note-label">日名稱</span><span class="note-val">グランドニッコー東京ベイ舞浜</span></div>
+      <div class="note-row"><span class="note-label">英名稱</span><span class="note-val">GRAND NIKKO TOKYO BAY MAIHAMA</span></div>
+      <div class="note-row"><span class="note-label">日地址</span><span class="note-val">〒279-0031 千葉県浦安市舞浜1-7</span></div>
+      <div class="note-row"><span class="note-label">英地址</span><span class="note-val">1-7 Maihama, Urayasu city, Chiba, Japan 279-0031</span></div>
+      <div class="note-row"><span class="note-label">電話</span><span class="note-val">81-47-350-3533</span></div>
+      <div class="note-row"><span class="note-label">Check-in</span><span class="note-val">15:00~00:00</span></div>
+      <div class="note-row"><span class="note-label">Check-out</span><span class="note-val">12:00</span></div>
+    </div>
+    <div class="notes-block">
+      <h3>飯店</h3>
+      <div class="note-row"><span class="note-label">中名稱</span><span class="note-val">澀谷東急REI飯店</span></div>
+      <div class="note-row"><span class="note-label">日名稱</span><span class="note-val">渋谷東急REIホテル</span></div>
+      <div class="note-row"><span class="note-label">日地址</span><span class="note-val">〒150-0002　東京都渋谷区渋谷1-24-10</div>
+      <div class="note-row"><span class="note-label">英地址</span><span class="note-val">Shibuya-ku, Shibuya 1-24-10, Shibuya Ward, Tokyo, Japan 150-0002</span></div>
+      <div class="note-row"><span class="note-label">電話</span><span class="note-val">03-3498-0109</span></div>
+      <div class="note-row"><span class="note-label">Check-in</span><span class="note-val">15:00</span></div>
+      <div class="note-row"><span class="note-label">Check-out</span><span class="note-val">10:00</span></div>
+      <div class="note-row"><span class="note-label">備註</span><span class="note-val">無早餐<br>領Ryan郵寄</span></div>
+    </div>
+    <div class="notes-block">
+      <h3>飯店</h3>
+      <div class="note-row"><span class="note-label">中名稱</span><span class="note-val">名古屋錦酒店阿科特爾酒店</span></div>
+      <div class="note-row"><span class="note-label">英名稱</span><span class="note-val">Hotel Actel Nagoya Nishiki</span></div>
+      <div class="note-row"><span class="note-label">日地址</span><span class="note-val">〒460-0003　名古屋市中区錦三丁目17-26</span></div>
+      <div class="note-row"><span class="note-label">英地址</span><span class="note-val">3 Chome-17-26 Nishiki, Naka Ward, Nagoya, Aichi, Japan 460-0003</span></div>
+      <div class="note-row"><span class="note-label">電話</span><span class="note-val"></span>052-962-8080</div>
+      <div class="note-row"><span class="note-label">Check-in</span><span class="note-val">15:00-00:00</span></div>
+      <div class="note-row"><span class="note-label">Check-out</span><span class="note-val">11:00</span></div>
+      <div class="note-row"><span class="note-label">備註</span><span class="note-val">無早餐</span></div>
+    </div>
+    <div class="notes-block">
+      <h3>飯店</h3>
+      <div class="note-row"><span class="note-label">英名稱</span><span class="note-val">Via Inn Shinsaibashi</span></div>
+      <div class="note-row"><span class="note-label">日地址</span><span class="note-val">〒542-0086　大阪府大阪市中央区西心斎橋1丁目10番15号</div>
+      <div class="note-row"><span class="note-label">英地址</span><span class="note-val">1-10-15, Nishishinsaibashi, Chuo-ku, Osaka City, Osaka, Japan 542-0086</span></div>
+      <div class="note-row"><span class="note-label">電話</span><span class="note-val">81-6-6121-5489</span></div>
+      <div class="note-row"><span class="note-label">Check-in</span><span class="note-val">15:00</span></div>
+      <div class="note-row"><span class="note-label">Check-out</span><span class="note-val">10:00</span></div>
+      <div class="note-row"><span class="note-label">備註</span><span class="note-val">有早餐</span></div>
+    </div>
+    <div class="notes-block">
+      <h3> 注意事項</h3>
+      <div class="note-row"><span class="note-label">入境</span><span class="note-val">Visit Japan Web 填妥電子申報</span></div>
+      <div class="note-row"><span class="note-label">網路</span><span class="note-val">購買日本 eSIM (當天開通就開始計算)</span></div>
+      <div class="note-row"><span class="note-label">交通卡</span><span class="note-val">iPhone Suica 電子票卡</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PACK -->
+<div class="page" id="page-pack">
+  <div class="card" style="margin:14px 14px 0;border-radius:8px;overflow:hidden;">
+    <div class="pack-category">
+      <div class="pack-cat-header">證件 &amp; 金融</div>
+      <div class="pack-items">
+        <div class="pack-item"><input type="checkbox" id="p1" onchange="upd()"><label for="p1">護照</label></div>
+        <div class="pack-item"><input type="checkbox" id="p2" onchange="upd()"><label for="p2">信用卡 / 現金（日幣）</label></div>
+        <div class="pack-item"><input type="checkbox" id="p3" onchange="upd()"><label for="p3">旅遊保險單</label></div>
+        <div class="pack-item"><input type="checkbox" id="p4" onchange="upd()"><label for="p4">電子機票截圖</label></div>
+        <div class="pack-item"><input type="checkbox" id="p5" onchange="upd()"><label for="p5">飯店確認信截圖</label></div>
+      </div>
+    </div>
+    <div class="pack-category">
+      <div class="pack-cat-header">3C &amp; 電源</div>
+      <div class="pack-items">
+        <div class="pack-item"><input type="checkbox" id="p6" onchange="upd()"><label for="p6">手機 + 充電線</label></div>
+        <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">行動電源（≤100Wh）</label></div>
+      </div>
+    </div>
+    <div class="pack-category">
+      <div class="pack-cat-header">衣物</div>
+      <div class="pack-items">
+        <div class="pack-item"><input type="checkbox" id="p11" onchange="upd()"><label for="p11">換洗衣物（7套）</label></div>
+        <div class="pack-item"><input type="checkbox" id="p12" onchange="upd()"><label for="p12">輕薄外套（早晚涼）</label></div>
+        <div class="pack-item"><input type="checkbox" id="p13" onchange="upd()"><label for="p13">舒適步行鞋</label></div>
+        <div class="pack-item"><input type="checkbox" id="p14" onchange="upd()"><label for="p14">折疊傘</label></div>
+      </div>
+    </div>
+    <div class="pack-category">
+      <div class="pack-cat-header">盥洗 &amp; 醫藥</div>
+      <div class="pack-items">
+        <div class="pack-item"><input type="checkbox" id="p15" onchange="upd()"><label for="p15">洗面乳 / 保養品</label></div>
+        <div class="pack-item"><input type="checkbox" id="p16" onchange="upd()"><label for="p16">防曬乳 SPF50+</label></div>
+        <div class="pack-item"><input type="checkbox" id="p17" onchange="upd()"><label for="p17">感冒藥 / 腸胃藥</label></div>
+        <div class="pack-item"><input type="checkbox" id="p18" onchange="upd()"><label for="p18">OK繃 / 消毒棉片</label></div>
+        <div class="pack-item"><input type="checkbox" id="p19" onchange="upd()"><label for="p19">口罩</label></div>
+      </div>
+    </div>
+    <div class="pack-category">
+      <div class="pack-cat-header">其他</div>
+      <div class="pack-items">
+        <div class="pack-item"><input type="checkbox" id="p20" onchange="upd()"><label for="p20">購物袋（折疊式）</label></div>
+        <div class="pack-item"><input type="checkbox" id="p21" onchange="upd()"><label for="p21">眼藥水</label></div>
+        <div class="pack-item"><input type="checkbox" id="p22" onchange="upd()"><label for="p22">頸枕</label></div>
+      </div>
+    </div>
+  </div>
+  <div class="pack-progress-bar-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="progress-text" id="prog-text">0 / 22</div>
+  </div>
+</div>
+
+<!-- ══ Bottom nav ══ -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-days" onclick="showPage('page-days')">
+    <span class="nav-icon">🗓</span>
+    <span class="nav-label">行程</span>
+  </button>
+  <button class="nav-item" id="nav-notes" onclick="showPage('page-notes')">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">備註</span>
+  </button>
+  <button class="nav-item" id="nav-pack" onclick="showPage('page-pack')">
+    <span class="nav-icon">🧳</span>
+    <span class="nav-label">行李</span>
+  </button>
+</nav>
+
+<!-- Print area: hidden on screen, shown only during print -->
+<div id="print-area" style="display:none"></div>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+// ── Day data ──
+// maps: 陣列，可放多張圖片，每項 { src, label }
+// src 填入相對路徑，留空字串則顯示佔位框
+const DAYS = [
+  {
+    label: 'Day 0', date: '04 / 06(一)',
+    title: '行前準備',
+    maps: [
+    ],
+    routes: [
+      { place: '桃園住宿', note: '確認行李清單&esim&旅平險' }
+    ]
+  },
+  {
+    label: 'Day 1', date: '04 / 07(二)',
+    title: '抵達成田 × 迪士尼入住  × 銀座燒肉',
+    maps: [
+      { src: './imgs/airport_bus_ticket.png', label: '巴士購票地點' },
+      { src: './imgs/bus_time.png', label: '巴士時刻表' },
+      { src: './imgs/hotel_bus.png', label: '飯店到舞濱接駁車' },
+    ],
+    routes: [
+      { place: '05:30 前往機場', note: '計程車' },
+      { place: '08:30 桃園國際機場（第1航廈）', note: '出境' },
+      { place: "12:55 抵達成田國際機場（第2航廈）",     note: '入境抓1.5小時' },
+      { place: '14:30 利木津巴士前往迪士尼',   note: '於一樓入境大廳櫃台換票，下車地點: 東京灣舞濱日航大酒店 | グランドニッコー東京ベイ舞浜 | GRAND NIKKO TOKYO BAY MAIHAMA' },
+      { place: '17:00 晚餐 燒肉Ushigoro 銀座店 30分鐘',   note: '舞濱站（迪士尼） → (搭乘JR京葉線) → 八丁堀站 → (日比谷線) →銀座站 步行五分鐘  〒104-0061 東京都中央区銀座5-6-13 西五番街ビル3F' },
+      { place: '21:00 回飯店 30分鐘',   note: '步行五分鐘 銀座站 → 八丁堀站(日比谷線) → (搭乘JR京葉線) 舞濱站（迪士尼）  〒104-0061 東京都中央区銀座5-6-13 西五番街ビル3F' },
+    ]
+  },
+  {
+    label: 'Day 2', date: '04 / 08(三)',
+    title: '迪士尼海洋',
+    maps: [
+      { src: './imgs/disneybus.png', label: '接駁到迪士尼方式' },
+      // { src: 'maps/d1-nex.jpg', label: 'N\'EX 時刻表' },
+    ],
+    routes: [
+      { place: '8:00 由飯店前往園區', note: '搭乘免費的接駁巴士「迪士尼度假區巡遊巴士」前往迪士尼度假區線的「海濱站」。<br>'+
+'轉乘單軌電車「迪士尼度假區線」後，至「東京迪士尼海洋站」下車。' },
+    ]
+  },
+  {
+    label: 'Day 3', date: '04 / 09(四)',
+    title: '迪士尼陸地',
+    maps: [
+      { src: './imgs/disneybus.png', label: '接駁到迪士尼方式' },
+    ],
+    routes: [
+      { place: '8:00 由飯店前往園區', note: '搭乘免費的接駁巴士「迪士尼度假區巡遊巴士」前往迪士尼度假區線的「海濱站」。<br>'+
+'轉乘單軌電車「迪士尼度假區線」後，至「東京迪士尼樂園站」下車。' },
+    ]
+  },
+  {
+    label: 'Day 4', date: '04 / 10(五)',
+    title: '哈利波特影城 × 涉谷sky',
+    maps: [
+      { src: './imgs/JR京葉線.png', label: 'JR京葉線圖' },
+      { src: './imgs/JR山手線.png', label: 'JR山手線' },
+      { src: './imgs/池袋車站圖.png', label: '池袋車站圖' },
+      { src: './imgs/鐵路豐島線.png', label: '鐵路豐島線' },
+    ],
+    routes: [
+      { place: '6:00 吃早餐',       note: '準備出發換地方' },
+      { place: '6:30 飯店搭巴士去東京車站 30分鐘',       note: '迪士尼度假區巡遊巴士 → 海濱站(迪士尼度假區線) → 度假區總站 → 舞濱站 (JR京葉線) → 東京站' },
+      { place: '7:00 東京車站轉車寄放行李 30分鐘',       note: '東京站(JR山手線 Yamanote Line) → 澀谷站 → 步行至飯店' },
+      { place: '8:00 前往哈利波特 10點入場',     note: '步行 → 澀谷站(JR山手線 Yamanote Line) → 池袋站 → 前往 西武鐵路 <br>池袋站(豐島線) → 豐島園站' },
+      { place: '10:00-17:00 哈利波特影城參觀',     note: '' },
+      { place: '17:00 回澀谷',       note: '豐島園站(西武鐵路) → 池袋站(JR山手線 Yamanote Line) → 澀谷站' },
+      { place: '19:00 澀谷 Sky 展望台',       note: '東京都渋谷区渋谷二丁目24番12号' },
+    ]
+  },
+  {
+    label: 'Day 5', date: '04 / 11(六)',
+    title: '賞櫻一日遊',
+    maps: [
+    ],
+    routes: [
+      { place: '賞櫻一日遊',             note: '' },
+    ]
+  },
+  {
+    label: 'Day 6', date: '04 / 12(日)',
+    title: '回程 × 前往名古屋',
+    maps: [
+      { src: './imgs/東海道新幹線.png', label: '東海道新幹線' },
+      { src: './imgs/名古屋東山線.png', label: '名古屋地鐵東山線' },
+      { src: './imgs/名古屋名城線.png', label: '名古屋名城線' },
+    ],
+    routes: [
+      { place: '12:00 前往名古屋 × 前往機場',             note: '機場:成田特快<br>名古屋:東京(東海道新幹線) → 名古屋 <br>車次NOZOMI 163 12:39 - 14:16' },
+      { place: '14:30 飯店寄放行李',       note: '名古屋(地鐵東山縣) → 榮' },
+      { place: '15:00-16:30 前往名古屋城',       note: '榮(地鐵名城線) → 名古屋城 → 步行5分鐘' },
+      { place: '16:30 回飯店',               note: '步行5分鐘→ 名古屋城(地鐵名城線) → 榮' },
+      { place: '17:30 晚餐',       note: '' },
+    ]
+  },
+  {
+    label: 'Day 7', date: '04 / 13(一)',
+    title: '吉卜力公園',
+    maps: [
+      { src: './imgs/名古屋東山線.png', label: '名古屋地鐵東山線' },
+      { src: './imgs/東部丘陵線.png', label: '東部丘陵線' },
+    ],
+    routes: [
+      { place: '11點入園',   note: '用email內容驗票' },
+    ]
+  },
+  {
+    label: 'Day 8', date: '04 / 14(二)',
+    title: '前往大阪 × 萬博紀念公園',
+    maps: [
+      { src: './imgs/名古屋東山線.png', label: '名古屋地鐵東山線' },
+      { src: './imgs/東海道新幹線.png', label: '東海道新幹線' },
+      { src: './imgs/御堂筋線.png', label: '御堂筋線' },
+      { src: './imgs/大阪單軌列車.png', label: '大阪單軌列車' },
+    ],
+    routes: [
+      { place: '出發前往大阪',             note: '榮(地鐵東山縣) → 名古屋 <br> 名古屋(東海道新幹線) → 新大阪<br>車次NOZOMI 19 10:49 - 11:39' },
+      { place: '使用kkday 一日周遊票',             note: '兌換一日周遊卷' },
+      { place: '11:40 寄放行李',       note: '新大阪(御堂筋線) → 心齋橋' },
+      { place: '12:30 前往萬博紀念公園',               note: '心齋橋 → 新大阪(御堂筋線) → 轉乘北大阪急行線 → 千里中央站 → 轉乘大阪單軌列車 → 萬博紀念公園' },
+      { place: '13:00-17:00 萬博紀念公園',       note: '使用kkday 一日周遊卷' },
+      { place: '18:00 晚餐:一蘭道頓堀店別館',               note: '車萬博紀念公園 → 轉乘大阪單軌列 → 千里中央站(北大阪急行線) → 難波 M20' },
+    ]
+  },
+  {
+    label: 'Day 9', date: '04 / 15(三)',
+    title: '大阪城 × 御座船 × 天守閣 × 水上巴士 × 宇宙塔展望台',
+    maps: [
+      { src: '', label: '淺草 → 日光 路線示意' },
+      { src: '', label: '日光市區 觀光地圖' },
+    ],
+    routes: [
+      { place: '淺草站出發',             note: '東武日光線特急「SPACIA」07:30 發車　約 110 分鐘　¥2,720' },
+      { place: '東照宮 & 輪王寺',       note: '09:30–12:00' },
+      { place: '華嚴瀑布',               note: '搭巴士前往　¥1,200 來回　13:00–14:30' },
+      { place: '13:25飛',       note: '關西 第一航廈' },
+    ]
+  },
+  {
+    label: 'Day 10', date: '04 / 16(四)',
+    title: '梅田(M16) 大阪生活今昔館 × 空中庭園展望台 × 道敦掘水上觀光船',
+    maps: [
+      { src: '', label: '淺草 → 日光 路線示意' },
+      { src: '', label: '日光市區 觀光地圖' },
+    ],
+    routes: [
+      { place: '淺草站出發',             note: '東武日光線特急「SPACIA」07:30 發車　約 110 分鐘　¥2,720' },
+      { place: '東照宮 & 輪王寺',       note: '09:30–12:00' },
+      { place: '華嚴瀑布',               note: '搭巴士前往　¥1,200 來回　13:00–14:30' },
+      { place: '13:25飛',       note: '關西 第一航廈' },
+    ]
+  },
+  {
+    label: 'Day 11', date: '04 / 17(五)',
+    title: '回程',
+    maps: [
+      { src: '', label: '淺草 → 日光 路線示意' },
+    ],
+    routes: [
+      { place: '13:25飛',       note: '關西 第一航廈' },
+    ]
+  },
+];
+
+// ── Page meta ──
+const PAGE_META = {
+  'page-days':       { title: '每日行程', sub: '',  back: false, nav: 'nav-days'  },
+  'page-day-detail': { title: '',         sub: '',  back: true,  nav: 'nav-days'  },
+  'page-notes':      { title: '行程備註', sub: '',  back: false, nav: 'nav-notes' },
+  'page-pack':       { title: '行李清單', sub: '',  back: false, nav: 'nav-pack'  },
+};
+
+let navHistory = ['page-days'];
+
+function renderDayList() {
+  const container = document.getElementById('day-list-content');
+  container.innerHTML = DAYS.map((day, i) => `
+    <div class="day-card" onclick="showDay(${i})">
+      <div class="day-badge">${day.label}</div>
+      <div class="day-card-info">
+        <div class="day-card-title">${day.title}</div>
+        <div class="day-card-sub">${day.date}　${day.routes.length} 個地點</div>
+      </div>
+      <span class="day-card-arrow">›</span>
+    </div>`).join('');
+}
+renderDayList();
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+
+  if (navHistory[navHistory.length - 1] !== id) navHistory.push(id);
+
+  const meta = PAGE_META[id] || PAGE_META['page-days'];
+  document.getElementById('page-title').textContent = meta.title;
+  document.getElementById('page-sub').textContent   = meta.sub;
+  document.getElementById('back-btn').classList.toggle('show', meta.back);
+
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (meta.nav) document.getElementById(meta.nav).classList.add('active');
+}
+
+function goBack() {
+  navHistory.pop();
+  const prev = navHistory[navHistory.length - 1] || 'page-days';
+  navHistory.pop();
+  showPage(prev);
+}
+
+function showDay(index) {
+  const day = DAYS[index];
+
+  // 多圖橫向捲動區
+  const mapsHtml = day.maps.map(m =>
+    m.src
+      ? `<div class="day-map-item">
+           <img src="${m.src}" alt="${m.label}" onclick="openLightbox(this.src)">
+           <div class="map-label">${m.label}</div>
+         </div>`
+      : `<div class="day-map-placeholder">🗺 ${m.label}</div>`
+  ).join('');
+
+  const routesHtml = day.routes.map(r => `
+    <div class="route-item">
+      <div class="route-dot"></div>
+      <div class="route-content">
+        <div class="route-place">${r.place}</div>
+        <div class="route-note">${r.note}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('day-detail-content').innerHTML = `
+    <div class="day-maps">${mapsHtml}</div>
+    <div class="card">
+      <div class="card-header"><h2>${day.label}　${day.date}</h2></div>
+      <div class="card-body">
+        <div class="route-list">${routesHtml}</div>
+      </div>
+    </div>`;
+
+  PAGE_META['page-day-detail'].title = `${day.label}　${day.title}`;
+  showPage('page-day-detail');
+}
+
+// ── Pack progress ──
+function upd() {
+  const all  = document.querySelectorAll('.pack-item input[type=checkbox]');
+  const done = document.querySelectorAll('.pack-item input[type=checkbox]:checked');
+  const pct  = Math.round(done.length / all.length * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent  = done.length + ' / ' + all.length;
+}
+
+// ── Print ──
+function printAll() {
+  const area = document.getElementById('print-area');
+
+  // Cover
+  let out = `<div class="pr-cover">
+    <h1>🇯🇵 日本東京</h1>
+    <p>2026 / 04 / 06 — 04 / 17　　</p>
+  </div>`;
+
+  // Days
+  out += '<div class="pr-section-title">每日行程</div>';
+  DAYS.forEach(day => {
+    const mapsHtml = day.maps.map(m =>
+      m.src
+        ? `<div style="flex:1;min-width:0">
+             <img class="pr-map-img" src="${m.src}" alt="${m.label}" style="width:100%">
+             <div class="pr-map-label">${m.label}</div>
+           </div>`
+        : `<div class="pr-map-placeholder">[ ${m.label} ]</div>`
+    ).join('');
+
+    const routes = day.routes.map(r => `
+      <div class="pr-route">
+        <div class="pr-dot"></div>
+        <div>
+          <div class="pr-route-place">${r.place}</div>
+          <div class="pr-route-note">${r.note}</div>
+        </div>
+      </div>`).join('');
+
+    out += `<div class="pr-day">
+      <div class="pr-day-header">
+        <h2>${day.label}　${day.title}</h2>
+        <span>${day.date}</span>
+      </div>
+      <div class="pr-maps">${mapsHtml}</div>
+      ${routes}
+    </div>`;
+  });
+
+  // Notes
+  out += '<div class="pr-section-title" style="page-break-before:always">行程備註</div>';
+  document.querySelectorAll('#page-notes .notes-block').forEach(block => {
+    const title = block.querySelector('h3').textContent;
+    const rows = Array.from(block.querySelectorAll('.note-row')).map(row =>
+      `<div class="pr-note-row">
+        <span class="pr-note-label">${row.querySelector('.note-label').textContent}</span>
+        <span>${row.querySelector('.note-val').textContent}</span>
+      </div>`
+    ).join('');
+    out += `<div class="pr-note-block"><h3>${title}</h3>${rows}</div>`;
+  });
+
+  // Pack list
+  out += '<div class="pr-section-title">行李清單</div>';
+  document.querySelectorAll('#page-pack .pack-category').forEach(cat => {
+    const title = cat.querySelector('.pack-cat-header').textContent;
+    const items = Array.from(cat.querySelectorAll('.pack-item')).map(item => {
+      const checked = item.querySelector('input[type=checkbox]').checked;
+      const lbl = item.querySelector('label').textContent;
+      return `<div class="pr-pack-item"><span class="pr-check-box ${checked ? 'checked' : ''}"></span>${lbl}</div>`;
+    }).join('');
+    out += `<div class="pr-pack-section"><h3>${title}</h3><div class="pr-pack-grid">${items}</div></div>`;
+  });
+
+  area.innerHTML = out;
+  area.style.display = 'block';
+  window.print();
+  // 列印後還原，避免畫面被蓋掉
+  setTimeout(() => {
+    area.style.display = 'none';
+    area.innerHTML = '';
+  }, 500);
+}
+
+// ── Lightbox ──
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+}
+</script>
+</body>
+</html>
