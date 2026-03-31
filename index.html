@@ -335,6 +335,10 @@
       <div class="note-row"><span class="note-label">大阪回程</span><span class="note-val">JX821 04/17<br>KIX(第一航廈) 13:25 →<br> TPE(第一航廈) 15:20</span></div>
     </div>
     <div class="notes-block">
+      <h3>提醒</h3>
+      <div class="note-row"><span class="note-label">回程南海電鐵</span><span class="note-val">於4/14三天前才可以購票</span></div>
+    </div>
+    <div class="notes-block">
       <h3>飯店</h3>
       <div class="note-row"><span class="note-label">中名稱</span><span class="note-val">東京灣舞濱日航大酒店</span></div>
       <div class="note-row"><span class="note-label">日名稱</span><span class="note-val">グランドニッコー東京ベイ舞浜</span></div>
@@ -362,7 +366,7 @@
       <div class="note-row"><span class="note-label">英名稱</span><span class="note-val">Hotel Actel Nagoya Nishiki</span></div>
       <div class="note-row"><span class="note-label">日地址</span><span class="note-val">〒460-0003　名古屋市中区錦三丁目17-26</span></div>
       <div class="note-row"><span class="note-label">英地址</span><span class="note-val">3 Chome-17-26 Nishiki, Naka Ward, Nagoya, Aichi, Japan 460-0003</span></div>
-      <div class="note-row"><span class="note-label">電話</span><span class="note-val"></span>052-962-8080</div>
+      <div class="note-row"><span class="note-label">電話</span><span class="note-val">052-962-8080</span></div>
       <div class="note-row"><span class="note-label">Check-in</span><span class="note-val">15:00-00:00</span></div>
       <div class="note-row"><span class="note-label">Check-out</span><span class="note-val">11:00</span></div>
       <div class="note-row"><span class="note-label">備註</span><span class="note-val">無早餐</span></div>
@@ -397,13 +401,17 @@
         <div class="pack-item"><input type="checkbox" id="p3" onchange="upd()"><label for="p3">旅遊保險單</label></div>
         <div class="pack-item"><input type="checkbox" id="p4" onchange="upd()"><label for="p4">電子機票截圖</label></div>
         <div class="pack-item"><input type="checkbox" id="p5" onchange="upd()"><label for="p5">飯店確認信截圖</label></div>
+        <div class="pack-item"><input type="checkbox" id="p5" onchange="upd()"><label for="p5">吉卜力確認信</label></div>
       </div>
     </div>
     <div class="pack-category">
       <div class="pack-cat-header">3C &amp; 電源</div>
       <div class="pack-items">
         <div class="pack-item"><input type="checkbox" id="p6" onchange="upd()"><label for="p6">手機 + 充電線</label></div>
-        <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">行動電源（≤100Wh）</label></div>
+        <div class="pack-item"><input type="checkbox" id="p6" onchange="upd()"><label for="p6">手錶 充電線</label></div>
+        <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">行動電源（大）</label></div>
+        <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">行動電源（小）</label></div>
+        <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">稱電線Type-C頭</label></div>
       </div>
     </div>
     <div class="pack-category">
@@ -411,7 +419,6 @@
       <div class="pack-items">
         <div class="pack-item"><input type="checkbox" id="p11" onchange="upd()"><label for="p11">換洗衣物（7套）</label></div>
         <div class="pack-item"><input type="checkbox" id="p12" onchange="upd()"><label for="p12">輕薄外套（早晚涼）</label></div>
-        <div class="pack-item"><input type="checkbox" id="p13" onchange="upd()"><label for="p13">舒適步行鞋</label></div>
         <div class="pack-item"><input type="checkbox" id="p14" onchange="upd()"><label for="p14">折疊傘</label></div>
       </div>
     </div>
@@ -431,6 +438,7 @@
         <div class="pack-item"><input type="checkbox" id="p20" onchange="upd()"><label for="p20">購物袋（折疊式）</label></div>
         <div class="pack-item"><input type="checkbox" id="p21" onchange="upd()"><label for="p21">眼藥水</label></div>
         <div class="pack-item"><input type="checkbox" id="p22" onchange="upd()"><label for="p22">頸枕</label></div>
+        <div class="pack-item"><input type="checkbox" id="p22" onchange="upd()"><label for="p22">行李吊牌+束帶(須購買)</label></div>
       </div>
     </div>
   </div>
@@ -616,25 +624,27 @@ const DAYS = [
   },
   {
     label: 'Day 10', date: '04 / 16(四)',
-    title: '梅田(M16) 大阪生活今昔館 × 空中庭園展望台 × 道敦掘水上觀光船',
+    title: '梅田(M16) 大阪生活今昔館 × 空中庭園展望台 × 天空美術館 × 道敦堀Wonder cruise',
     maps: [
-      { src: '', label: '淺草 → 日光 路線示意' },
-      { src: '', label: '日光市區 觀光地圖' },
+      { src: './imgs/御堂筋線.png', label: '御堂筋線' },
+      { src: './imgs/古町線.png', label: '古町線' },
     ],
     routes: [
-      { place: '淺草站出發',             note: '東武日光線特急「SPACIA」07:30 發車　約 110 分鐘　¥2,720' },
-      { place: '東照宮 & 輪王寺',       note: '09:30–12:00' },
-      { place: '華嚴瀑布',               note: '搭巴士前往　¥1,200 來回　13:00–14:30' },
-      { place: '13:25飛',       note: '關西 第一航廈' },
+      { place: '大阪生活今昔館',             note: '先到梅田 → 東梅田(古町線) → 天神橋經六町木' },
+      { place: '空中庭園展望台',       note: '15:00前才免費入場' },
+      { place: '天空美術館',       note: '' },
+      { place: '17:30 道敦堀Wonder cruise',               note: '報到領船票， 日本橋船着場（道頓堀）' },
     ]
   },
   {
     label: 'Day 11', date: '04 / 17(五)',
     title: '回程',
     maps: [
-      { src: '', label: '淺草 → 日光 路線示意' },
+      { src: './imgs/御堂筋線.png', label: '御堂筋線' },
+      { src: './imgs/南海電鐵.png', label: '南海電鐵' },
     ],
     routes: [
+      { place: '9:00搭乘南海電鐵',       note: '心齋橋 → 難波 M20  → 機場  需前三天才能買票' },
       { place: '13:25飛',       note: '關西 第一航廈' },
     ]
   },
