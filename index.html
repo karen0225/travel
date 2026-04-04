@@ -402,6 +402,7 @@
         <div class="pack-item"><input type="checkbox" id="p4" onchange="upd()"><label for="p4">電子機票截圖</label></div>
         <div class="pack-item"><input type="checkbox" id="p5" onchange="upd()"><label for="p5">飯店確認信截圖</label></div>
         <div class="pack-item"><input type="checkbox" id="p5" onchange="upd()"><label for="p5">吉卜力確認信</label></div>
+        <div class="pack-item"><input type="checkbox" id="p5" onchange="upd()"><label for="p5">日本入境QR Code</label></div>
       </div>
     </div>
     <div class="pack-category">
@@ -411,12 +412,13 @@
         <div class="pack-item"><input type="checkbox" id="p6" onchange="upd()"><label for="p6">手錶 充電線</label></div>
         <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">行動電源（大）</label></div>
         <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">行動電源（小）</label></div>
-        <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">稱電線Type-C頭</label></div>
+        <div class="pack-item"><input type="checkbox" id="p7" onchange="upd()"><label for="p7">充電線Type-C頭</label></div>
       </div>
     </div>
     <div class="pack-category">
       <div class="pack-cat-header">衣物</div>
       <div class="pack-items">
+        <div class="pack-item"><input type="checkbox" id="p11" onchange="upd()"><label for="p11">免洗內褲&襪子</label></div>
         <div class="pack-item"><input type="checkbox" id="p11" onchange="upd()"><label for="p11">換洗衣物（7套）</label></div>
         <div class="pack-item"><input type="checkbox" id="p12" onchange="upd()"><label for="p12">輕薄外套（早晚涼）</label></div>
         <div class="pack-item"><input type="checkbox" id="p14" onchange="upd()"><label for="p14">折疊傘</label></div>
@@ -497,33 +499,43 @@ const DAYS = [
     routes: [
       { place: '05:30 前往機場', note: '計程車' },
       { place: '08:30 桃園國際機場（第1航廈）', note: '出境' },
-      { place: "12:55 抵達成田國際機場（第2航廈）",     note: '入境抓1.5小時' },
+      { place: "12:55 抵達成田國際機場（第2航廈）",     note: '入境抓1.5小時，午餐機場簡單吃' },
       { place: '14:30 利木津巴士前往迪士尼',   note: '於一樓入境大廳櫃台換票，下車地點: 東京灣舞濱日航大酒店 | グランドニッコー東京ベイ舞浜 | GRAND NIKKO TOKYO BAY MAIHAMA' },
       { place: '17:00 晚餐 燒肉Ushigoro 銀座店 30分鐘',   note: '舞濱站（迪士尼） → (搭乘JR京葉線) → 八丁堀站 → (日比谷線) →銀座站 步行五分鐘  〒104-0061 東京都中央区銀座5-6-13 西五番街ビル3F' },
       { place: '21:00 回飯店 30分鐘',   note: '步行五分鐘 銀座站 → 八丁堀站(日比谷線) → (搭乘JR京葉線) 舞濱站（迪士尼）  〒104-0061 東京都中央区銀座5-6-13 西五番街ビル3F' },
+    { place: '準備迪士尼票捲掃入APP',   note: '' },
+    
     ]
   },
   {
     label: 'Day 2', date: '04 / 08(三)',
     title: '迪士尼海洋',
     maps: [
+      { src: './imgs/快通分類.png', label: '快通分類' },
+      { src: './imgs/快通冷卻.png', label: '快通冷卻' },
+      { src: './imgs/海洋快通.png', label: '海洋快通' },
       { src: './imgs/disneybus.png', label: '接駁到迪士尼方式' },
       // { src: 'maps/d1-nex.jpg', label: 'N\'EX 時刻表' },
     ],
     routes: [
-      { place: '8:00 由飯店前往園區', note: '搭乘免費的接駁巴士「迪士尼度假區巡遊巴士」前往迪士尼度假區線的「海濱站」。<br>'+
+      { place: '7:00 由飯店前往園區', note: '搭乘免費的接駁巴士「迪士尼度假區巡遊巴士」前往迪士尼度假區線的「海濱站」。<br>'+
 '轉乘單軌電車「迪士尼度假區線」後，至「東京迪士尼海洋站」下車。' },
+{ place: '買快通', note: 'Elsa.小飛俠.樂配' },
     ]
   },
   {
     label: 'Day 3', date: '04 / 09(四)',
     title: '迪士尼陸地',
     maps: [
+      { src: './imgs/快通分類.png', label: '快通分類' },
+      { src: './imgs/快通冷卻.png', label: '快通冷卻' },
+      { src: './imgs/陸地快通.png', label: '陸地快通' },
       { src: './imgs/disneybus.png', label: '接駁到迪士尼方式' },
     ],
     routes: [
-      { place: '8:00 由飯店前往園區', note: '搭乘免費的接駁巴士「迪士尼度假區巡遊巴士」前往迪士尼度假區線的「海濱站」。<br>'+
+      { place: '7:00 由飯店前往園區', note: '搭乘免費的接駁巴士「迪士尼度假區巡遊巴士」前往迪士尼度假區線的「海濱站」。<br>'+
 '轉乘單軌電車「迪士尼度假區線」後，至「東京迪士尼樂園站」下車。' },
+      { place: '搶快通', note: '米奇魔法音樂世界' },
     ]
   },
   {
@@ -547,11 +559,14 @@ const DAYS = [
   },
   {
     label: 'Day 5', date: '04 / 11(六)',
-    title: '賞櫻一日遊',
+    title: '寶可夢 × 金魚屋 × 美術館',
     maps: [
+      { src: './imgs/銀座線.png', label: '銀座線' },
     ],
     routes: [
-      { place: '賞櫻一日遊',             note: '' },
+      { place: '10:00 開門 寶可夢',             note: '飯店步行7分鐘 → 澀谷PARCO百貨 6F (東京都渋谷区宇田川町15-1) ' },
+      { place: '12:00 牛舌之檸檬 澀谷店',             note: '(10Mins) 寶可夢 → 步行10分鐘 → ザ・レンガビル, 日本〒150-0043 Tokyo, Shibuya, Dogenzaka, 1 Chome−5−6' },
+      { place: '15:30 ART AQUARIUM MUSEUM 銀座金魚美術館',             note: '涉谷車站(銀座線) → 銀座 → 日本〒104-8212 Tokyo, Chuo City, Ginza, 4 Chome−6−16 三越新館 9階 9階入場口' },
     ]
   },
   {
@@ -578,7 +593,9 @@ const DAYS = [
       { src: './imgs/東部丘陵線.png', label: '東部丘陵線' },
     ],
     routes: [
-      { place: '11點入園',   note: '用email內容驗票' },
+      { place: '8:30前往吉卜力公園',   note: '(1hour)飯店步行5分鐘 → 榮(東山線) → 藤丘 → 愛知高速交通東部丘陵線（ＬＩＮＩＭＯ） →  愛·地球博紀念公園車站 → 步行8分鐘' },
+      { place: '10點入園',   note: '用email內容驗票' },
+      { place: '11點大倉庫',   note: '用電子票眷' },
     ]
   },
   {
@@ -630,10 +647,12 @@ const DAYS = [
       { src: './imgs/古町線.png', label: '古町線' },
     ],
     routes: [
-      { place: '大阪生活今昔館',             note: '先到梅田 → 東梅田(古町線) → 天神橋經六町木' },
-      { place: '空中庭園展望台',       note: '15:00前才免費入場' },
-      { place: '天空美術館',       note: '' },
+      { place: '10:00 大阪生活今昔館',             note: '(25mins)飯店 → 心齋橋(御堂筋線) → 梅田 → 步行5分鐘 → 東梅田(古町線) → 天神橋經六町木' },
+      { place: '12:00空中庭園展望台',       note: '15:00前才免費入場 天神橋經六町木(古町線) → 東梅田 → 步行15分鐘' },
+      { place: '天空美術館',       note: '走路2分鐘' },
+      { place: '15:00 前往道敦堀',               note: '梅田(御堂筋線) → 難波站' },
       { place: '17:30 道敦堀Wonder cruise',               note: '報到領船票， 日本橋船着場（道頓堀）' },
+      { place: '18:30 晚餐',               note: '' },
     ]
   },
   {
